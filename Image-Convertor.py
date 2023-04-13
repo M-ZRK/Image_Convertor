@@ -1,6 +1,6 @@
 import os
 from PIL import Image
-from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QLabel, QPushButton, QWidget, QMessageBox
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QLabel, QPushButton, QWidget, QMessageBox, QProgressBar, QProgressDialog
 from PyQt5.QtGui import QFont, QIcon
 from PyQt5.QtCore import Qt
 
@@ -13,7 +13,36 @@ class ImageConverter(QMainWindow):
         self.setWindowTitle('Image Converter')
         self.setGeometry(100, 100, 500, 275)
         self.setFixedSize(500, 275)
-        self.setStyleSheet('background-color:#e2e2e2;')
+        self.setStyleSheet('''
+            QMainWindow {
+                background-color: #e2e2e2;
+            }
+            QLabel {
+                font-family: Arial;
+            }
+            QPushButton {
+                font-family: Arial;
+                color: black;
+                background-color: white;
+                border: 1px solid #2a80ff;
+                border-radius: 5px;
+                padding: 2px 15px 2px 15px;
+            }
+            QPushButton:hover {
+                background-color: #e0f1f6;
+            }
+            QProgressBar {
+                color: #ffffff;
+                background-color: #d8d8d8;
+                border: 1px solid #bfbfbf;
+                border-radius: 5px;
+                text-align: center;
+            }
+            QProgressBar::chunk {
+                background-color: #2a80ff;
+                border-radius: 5px;
+            }
+        ''')
 
         # set window icon
         self.setWindowIcon(QIcon('icon.png'))
@@ -95,12 +124,19 @@ class ImageConverter(QMainWindow):
             self.showError('Please select output folder.')
             return
 
-        for input_path in self.input_paths:
+        progress_dialog = QProgressDialog("Converting images...", "Cancel", 0, len(self.input_paths), self)
+        progress_dialog.setWindowModality(Qt.WindowModal)
+        progress_dialog.show()
+
+        for i, input_path in enumerate(self.input_paths):
             if os.path.isfile(input_path):
                 if input_path.endswith(('.jpg', '.png')):
                     image = Image.open(input_path)
                     new_file_name = os.path.splitext(os.path.basename(input_path))[0] + '.webp'
                     new_image_path = os.path.join(self.output_path, new_file_name)
+                    progress_dialog.setValue(i)
+                    progress_dialog.setLabelText('Converting {}/{}: {} -> {}'.format(i+1, len(self.input_paths), os.path.basename(input_path), new_file_name))
+                    QApplication.processEvents()
                     image.save(new_image_path, 'webp')
                 else:
                     self.showError('Invalid input file format. Please select files with JPG or PNG format.')
@@ -111,7 +147,12 @@ class ImageConverter(QMainWindow):
                         image = Image.open(image_path)
                         new_file_name = os.path.splitext(filename)[0] + '.webp'
                         new_image_path = os.path.join(self.output_path, new_file_name)
+                        progress_dialog.setValue(i)
+                        progress_dialog.setLabelText('Converting {}/{}: {} -> {}'.format(i+1, len(self.input_paths), filename, new_file_name))
+                        QApplication.processEvents()
                         image.save(new_image_path, 'webp')
+
+        progress_dialog.close()
 
         # show completion message
         msgBox = QMessageBox()
@@ -120,15 +161,14 @@ class ImageConverter(QMainWindow):
         msgBox.setWindowTitle('Success')
         msgBox.exec_()
 
-        def showError(self, message):
-            msgBox = QMessageBox()
-            msgBox.setIcon(QMessageBox.Critical)
-            msgBox.setText(message)
-            msgBox.setWindowTitle('Error')
-            msgBox.exec_()
+    def showError(self, message):
+        msgBox = QMessageBox()
+        msgBox.setIcon(QMessageBox.Critical)
+        msgBox.setText(message)
+        msgBox.setWindowTitle('Error')
+        msgBox.exec_()
 
 if __name__ == '__main__':
     app = QApplication([])
     converter = ImageConverter()
-    app.aboutToQuit.connect(converter.closeEvent)
     app.exec_()
