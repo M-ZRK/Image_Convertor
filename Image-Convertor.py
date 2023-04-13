@@ -1,20 +1,24 @@
 import os
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QFont
-from PyQt5.QtWidgets import QApplication, QMainWindow, QFileDialog, QPushButton, QLabel, QMessageBox
 from PIL import Image
+from PyQt5.QtWidgets import QApplication, QFileDialog, QMainWindow, QLabel, QPushButton, QWidget, QMessageBox
+from PyQt5.QtGui import QFont, QIcon
+from PyQt5.QtCore import Qt
+
 
 class ImageConverter(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.initUI()
-
-    def initUI(self):
+        self.input_paths = []
+        self.output_path = ''
         self.setWindowTitle('Image Converter')
         self.setGeometry(100, 100, 500, 275)
         self.setFixedSize(500, 275)
         self.setStyleSheet('background-color:#e2e2e2;')
 
+        # set window icon
+        self.setWindowIcon(QIcon('icon.png'))
+
+        # create widgets
         self.title_label = QLabel('Image Converter', self)
         self.title_label.setGeometry(10, 10, 500, 50)
         font = QFont('Arial', 18, QFont.Bold)
@@ -71,10 +75,10 @@ class ImageConverter(QMainWindow):
         self.show()
 
     def selectInput(self):
-        file_name, _ = QFileDialog.getOpenFileName(self, 'Select input file', '', 'All Files (*);;JPG Files (*.jpg);;PNG Files (*.png)', options=QFileDialog.Options())
-        if file_name:
-            self.input_path = file_name
-            self.input_path_label.setText('Input file: ' + self.input_path)
+        file_names, _ = QFileDialog.getOpenFileNames(self, 'Select input file(s)', '', 'All Files (*);;JPG Files (*.jpg);;PNG Files (*.png)', options=QFileDialog.Options())
+        if file_names:
+            self.input_paths = file_names
+            self.input_path_label.setText('Input file(s): ' + str(len(file_names)) + ' selected')
 
     def selectOutput(self):
         folder_name = QFileDialog.getExistingDirectory(self, 'Select output folder')
@@ -83,22 +87,31 @@ class ImageConverter(QMainWindow):
             self.output_path_label.setText('Output folder: ' + self.output_path)
 
     def convertImages(self):
-        if os.path.isfile(self.input_path):
-            if self.input_path.endswith(('.jpg', '.png')):
-                image = Image.open(self.input_path)
-                new_file_name = os.path.splitext(os.path.basename(self.input_path))[0] + '.webp'
-                new_image_path = os.path.join(self.output_path, new_file_name)
-                image.save(new_image_path, 'webp')
-            else:
-                self.showError('Invalid input file format. Please select a file with JPG or PNG format.')
-        else:
-            for filename in os.listdir(self.input_path):
-                if filename.endswith(('.jpg', '.png')):
-                    image_path = os.path.join(self.input_path, filename)
-                    image = Image.open(image_path)
-                    new_file_name = os.path.splitext(filename)[0] + '.webp'
+        if not self.input_paths:
+            self.showError('Please select input file(s).')
+            return
+
+        if not self.output_path:
+            self.showError('Please select output folder.')
+            return
+
+        for input_path in self.input_paths:
+            if os.path.isfile(input_path):
+                if input_path.endswith(('.jpg', '.png')):
+                    image = Image.open(input_path)
+                    new_file_name = os.path.splitext(os.path.basename(input_path))[0] + '.webp'
                     new_image_path = os.path.join(self.output_path, new_file_name)
                     image.save(new_image_path, 'webp')
+                else:
+                    self.showError('Invalid input file format. Please select files with JPG or PNG format.')
+            else:
+                for filename in os.listdir(input_path):
+                    if filename.endswith(('.jpg', '.png')):
+                        image_path = os.path.join(input_path, filename)
+                        image = Image.open(image_path)
+                        new_file_name = os.path.splitext(filename)[0] + '.webp'
+                        new_image_path = os.path.join(self.output_path, new_file_name)
+                        image.save(new_image_path, 'webp')
 
         # show completion message
         msgBox = QMessageBox()
@@ -107,12 +120,12 @@ class ImageConverter(QMainWindow):
         msgBox.setWindowTitle('Success')
         msgBox.exec_()
 
-    def showError(self, message):
-        msgBox = QMessageBox()
-        msgBox.setIcon(QMessageBox.Critical)
-        msgBox.setText(message)
-        msgBox.setWindowTitle('Error')
-        msgBox.exec_()
+        def showError(self, message):
+            msgBox = QMessageBox()
+            msgBox.setIcon(QMessageBox.Critical)
+            msgBox.setText(message)
+            msgBox.setWindowTitle('Error')
+            msgBox.exec_()
 
 if __name__ == '__main__':
     app = QApplication([])
