@@ -21,7 +21,7 @@ class ImageConverter(QMainWindow):
         self.title_label.setFont(font)
         self.title_label.setStyleSheet('color: #2a8c2a; text-align: center;')
 
-        self.input_path_label = QLabel('Select input folder or file:', self)
+        self.input_path_label = QLabel('Select input file:', self)
         self.input_path_label.setGeometry(10, 70, 300, 30)
         font = QFont('Arial', 9)
         self.input_path_label.setFont(font)
