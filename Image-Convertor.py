@@ -64,7 +64,8 @@ class ImageConverter(QMainWindow):
         self.input_path_button.setGeometry(360, 70, 100, 30)
         font = QFont('Arial', 9)
         self.input_path_button.setFont(font)
-        self.input_path_button.setStyleSheet('color: white; background-color: #2a80ff; border-radius: 5px;')
+        self.input_path_button.setStyleSheet('color: white; background-color: #2a80ff; border-radius: 5px;\
+                                            QPushButton:hover{background-color: #e0f1f6;}')
         self.input_path_button.clicked.connect(self.selectInput)
 
         self.output_path_label = QLabel('Select output folder:', self)
@@ -77,14 +78,16 @@ class ImageConverter(QMainWindow):
         self.output_path_button.setGeometry(360, 110, 100, 30)
         font = QFont('Arial', 9)
         self.output_path_button.setFont(font)
-        self.output_path_button.setStyleSheet('color: white; background-color: #2a80ff; border-radius: 5px;')
+        self.output_path_button.setStyleSheet('color: white; background-color: #2a80ff; border-radius: 5px;\
+                                            QPushButton:hover{background-color: #e0f1f6;}')
         self.output_path_button.clicked.connect(self.selectOutput)
 
         self.convert_button = QPushButton('Convert', self)
         self.convert_button.setGeometry(200, 160, 100, 40)
         font = QFont('Arial', 12)
         self.convert_button.setFont(font)
-        self.convert_button.setStyleSheet('color: white; background-color: #2a80ff; border-radius: 5px;')
+        self.convert_button.setStyleSheet('color: white; background-color: #2a80ff; border-radius: 5px;\
+                                            QPushButton:hover{background-color: #e0f1f6;}')
         self.convert_button.clicked.connect(self.convertImages)
 
         self.info_label = QLabel('This program converts JPG and PNG images to WEBP format.', self)
